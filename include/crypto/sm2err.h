@@ -39,6 +39,7 @@ int ossl_err_load_SM2_strings(void);
 #  define SM2_R_INVALID_FIELD                              105
 #  define SM2_R_INVALID_PRIVATE_KEY                        113
 #  define SM2_R_NO_PARAMETERS_SET                          109
+#  define SM2_R_POINT_ARITHMETIC_FAILURE                   114
 #  define SM2_R_USER_ID_TOO_LARGE                          106
 
 # endif

@@ -66,6 +66,9 @@ typedef enum {
 typedef enum {
     SSL_TEST_METHOD_TLS = 0, /* Default */
     SSL_TEST_METHOD_DTLS
+#ifndef OPENSSL_NO_TLCP
+    ,SSL_TEST_METHOD_TLCP
+#endif
 } ssl_test_method_t;
 
 typedef enum {

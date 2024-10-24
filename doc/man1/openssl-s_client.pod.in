@@ -29,6 +29,8 @@ B<openssl> B<s_client>
 [B<-verifyCApath> I<dir>]
 [B<-verifyCAstore> I<uri>]
 [B<-cert> I<filename>]
+[B<-sign_cert> I<filename>]
+[B<-enc_cert> I<filename>]
 [B<-certform> B<DER>|B<PEM>|B<P12>]
 [B<-cert_chain> I<filename>]
 [B<-build_chain>]
@@ -36,6 +38,8 @@ B<openssl> B<s_client>
 [B<-CRLform> B<DER>|B<PEM>]
 [B<-crl_download>]
 [B<-key> I<filename>|I<uri>]
+[B<-sign_key> I<filename>]
+[B<-enc_key> I<filename>]
 [B<-keyform> B<DER>|B<PEM>|B<P12>|B<ENGINE>]
 [B<-pass> I<arg>]
 [B<-chainCAfile> I<filename>]
@@ -61,6 +65,8 @@ B<openssl> B<s_client>
 [B<-keymatexportlen> I<len>]
 [B<-msgfile> I<filename>]
 [B<-nbio_test>]
+[B<-tlcp>]
+[B<-enable_tlcp>]
 [B<-state>]
 [B<-nbio>]
 [B<-crlf>]
@@ -233,6 +239,20 @@ The default is not to use a certificate.
 
 The chain for the client certificate may be specified using B<-cert_chain>.
 
+=item B<-sign_cert> I<filename>
+
+The client signature certificate to use. Except SM2DHE key exchange, client
+signature cert is required if one is requested by the server, the default is
+not to use a certificate. For SM2DHE key exchange, client must send signature
+and encryption certificates as required.
+
+=item B<-enc_cert> I<filename>
+
+The client encryption certificate to use. Except SM2DHE key exchange, client
+encryption cert is required if one is requested by the server, the default is
+not to use a certificate. For SM2DHE key exchange, client must send signature
+and encryption certificate as required.
+
 =item B<-certform> B<DER>|B<PEM>|B<P12>
 
 The client certificate file format to use; unspecified by default.
@@ -266,6 +286,14 @@ Download CRL from distribution points in the certificate.
 
 The client private key to use.
 If not specified then the certificate file will be used to read also the key.
+
+=item B<-sign_key> I<filename>
+
+The signature private key to use.
+
+=item B<-enc_key> I<filename>
+
+The encryption private key to use.
 
 =item B<-keyform> B<DER>|B<PEM>|B<P12>|B<ENGINE>
 
@@ -417,6 +445,14 @@ because a client certificate is required or is requested only after an
 attempt is made to access a certain URL. Note: the output produced by this
 option is not always accurate because a connection might never have been
 established.
+
+=item B<-tlcp>
+
+Just talk TLCP protocol.
+
+=item B<-enable_tlcp>
+
+Enable TLCP protocol.
 
 =item B<-state>
 

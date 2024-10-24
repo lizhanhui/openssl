@@ -441,6 +441,34 @@ static int test_handshake(int idx)
         }
     }
 #endif
+#ifndef OPENSSL_NO_TLCP
+    if (test_ctx->method == SSL_TEST_METHOD_TLCP) {
+        server_ctx = SSL_CTX_new_ex(libctx, NULL, TLCP_server_method());
+        if (!TEST_ptr(server_ctx)) {
+            goto err;
+        }
+
+        if (test_ctx->extra.server.servername_callback !=
+            SSL_TEST_SERVERNAME_CB_NONE) {
+            if (!TEST_ptr(server2_ctx = SSL_CTX_new_ex(libctx, NULL, TLCP_server_method())))
+                goto err;
+        }
+
+        client_ctx = SSL_CTX_new_ex(libctx, NULL, TLCP_client_method());
+        if (!TEST_ptr(client_ctx)) {
+            goto err;
+        }
+
+        if (test_ctx->handshake_mode == SSL_TEST_HANDSHAKE_RESUME) {
+            resume_server_ctx = SSL_CTX_new_ex(libctx, NULL, TLCP_server_method());
+            resume_client_ctx = SSL_CTX_new_ex(libctx, NULL, TLCP_client_method());
+
+            if (!TEST_ptr(resume_server_ctx)
+                || !TEST_ptr(resume_client_ctx))
+                goto err;
+        }
+    }
+#endif
     if (test_ctx->method == SSL_TEST_METHOD_TLS) {
 #if !defined(OPENSSL_NO_TLS1_3) \
     && defined(OPENSSL_NO_EC) \

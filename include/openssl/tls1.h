@@ -203,6 +203,10 @@ extern "C" {
 # define TLSEXT_curve_P_256                              23
 # define TLSEXT_curve_P_384                              24
 
+/* defined in RFC 8998 */
+# define TLSEXT_curve_SM2                                41
+
+
 /* OpenSSL value to disable maximum fragment length extension */
 # define TLSEXT_max_fragment_length_DISABLED    0
 /* Allowed values for max fragment length extension */

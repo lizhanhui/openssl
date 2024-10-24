@@ -237,6 +237,8 @@ static const ERR_STRING_DATA SSL_str_reasons[] = {
     "missing dsa signing cert"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_MISSING_ECDSA_SIGNING_CERT),
     "missing ecdsa signing cert"},
+    {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_MISSING_ENC_CERTIFICATE),
+    "missing encryption certificate"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_MISSING_FATAL), "missing fatal"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_MISSING_PARAMETERS), "missing parameters"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_MISSING_PSK_KEX_MODES_EXTENSION),

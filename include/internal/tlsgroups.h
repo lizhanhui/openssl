@@ -41,6 +41,7 @@
 # define OSSL_TLS_GROUP_ID_brainpoolP512r1  0x001C
 # define OSSL_TLS_GROUP_ID_x25519           0x001D
 # define OSSL_TLS_GROUP_ID_x448             0x001E
+# define OSSL_TLS_GROUP_ID_sm2              0x0029
 # define OSSL_TLS_GROUP_ID_ffdhe2048        0x0100
 # define OSSL_TLS_GROUP_ID_ffdhe3072        0x0101
 # define OSSL_TLS_GROUP_ID_ffdhe4096        0x0102

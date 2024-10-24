@@ -173,6 +173,23 @@ IMPLEMENT_dtls1_meth_func(DTLS_ANY_VERSION, 0, 0,
                           DTLS_client_method,
                           ssl_undefined_function,
                           ossl_statem_connect, DTLSv1_2_enc_data)
+
+#ifndef OPENSSL_NO_TLCP
+IMPLEMENT_tls_meth_func(TLCP_VERSION, SSL_METHOD_NO_SUITEB, SSL_OP_NO_TLCP,
+                        tlcp_method,
+                        ossl_statem_accept,
+                        ossl_statem_connect, TLCP_enc_data)
+
+IMPLEMENT_tls_meth_func(TLCP_VERSION, SSL_METHOD_NO_SUITEB, SSL_OP_NO_TLCP,
+                        tlcp_server_method,
+                        ossl_statem_accept,
+                        ssl_undefined_function, TLCP_enc_data)
+
+IMPLEMENT_tls_meth_func(TLCP_VERSION, SSL_METHOD_NO_SUITEB, SSL_OP_NO_TLCP,
+                        tlcp_client_method,
+                        ssl_undefined_function,
+                        ossl_statem_connect, TLCP_enc_data)
+#endif
 #ifndef OPENSSL_NO_DEPRECATED_1_1_0
 # ifndef OPENSSL_NO_TLS1_2_METHOD
 const SSL_METHOD *TLSv1_2_method(void)
@@ -273,6 +290,23 @@ const SSL_METHOD *DTLSv1_server_method(void)
 const SSL_METHOD *DTLSv1_client_method(void)
 {
     return dtlsv1_client_method();
+}
+# endif
+
+# ifndef OPENSSL_NO_TLCP
+const SSL_METHOD *TLCP_method(void)
+{
+    return tlcp_method();
+}
+
+const SSL_METHOD *TLCP_server_method(void)
+{
+    return tlcp_server_method();
+}
+
+const SSL_METHOD *TLCP_client_method(void)
+{
+    return tlcp_client_method();
 }
 # endif
 

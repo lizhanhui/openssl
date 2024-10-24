@@ -38,6 +38,15 @@ IF[{- !$disabled{'deprecated-3.0'} -}]
   SOURCE[../libssl]=ssl_rsa_legacy.c
 ENDIF
 
+
+IF[{- !$disabled{tlcp} -}]
+  SOURCE[../libssl]=statem_tlcp/tlcp_extensions.c \
+        statem_tlcp/tlcp_extensions_clnt.c \
+        statem_tlcp/tlcp_extensions_cust.c statem_tlcp/tlcp_extensions_srvr.c \
+        statem_tlcp/tlcp_statem.c statem_tlcp/tlcp_statem_clnt.c \
+        statem_tlcp/tlcp_statem_lib.c statem_tlcp/tlcp_statem_srvr.c
+ENDIF
+
 DEFINE[../libssl]=$AESDEF
 
 SOURCE[../providers/libcommon.a]=record/tls_pad.c

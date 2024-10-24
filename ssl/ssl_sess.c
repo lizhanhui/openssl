@@ -353,6 +353,9 @@ int ssl_generate_session_id(SSL *s, SSL_SESSION *ss)
     case DTLS1_BAD_VER:
     case DTLS1_VERSION:
     case DTLS1_2_VERSION:
+#ifndef OPENSSL_NO_TLCP
+    case TLCP1_1_VERSION:
+#endif
         ss->session_id_length = SSL3_SSL_SESSION_ID_LENGTH;
         break;
     default:

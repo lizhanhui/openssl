@@ -158,6 +158,7 @@
 # define SSL_R_LIBRARY_HAS_NO_CIPHERS                     161
 # define SSL_R_MISSING_DSA_SIGNING_CERT                   165
 # define SSL_R_MISSING_ECDSA_SIGNING_CERT                 381
+# define SSL_R_MISSING_ENC_CERTIFICATE                    346
 # define SSL_R_MISSING_FATAL                              256
 # define SSL_R_MISSING_PARAMETERS                         290
 # define SSL_R_MISSING_PSK_KEX_MODES_EXTENSION            310

@@ -268,6 +268,9 @@ SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
     }
 
     if ((as->ssl_version >> 8) != SSL3_VERSION_MAJOR
+#ifndef OPENSSL_NO_TLCP
+        && as->ssl_version != TLCP_VERSION
+#endif
         && (as->ssl_version >> 8) != DTLS1_VERSION_MAJOR
         && as->ssl_version != DTLS1_BAD_VER) {
         ERR_raise(ERR_LIB_SSL, SSL_R_UNSUPPORTED_SSL_VERSION);

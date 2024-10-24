@@ -711,6 +711,11 @@ typedef enum OPTION_choice {
     OPT_UPPER_WWW, OPT_HTTP, OPT_ASYNC, OPT_SSL_CONFIG,
     OPT_MAX_SEND_FRAG, OPT_SPLIT_SEND_FRAG, OPT_MAX_PIPELINES, OPT_READ_BUF,
     OPT_SSL3, OPT_TLS1_3, OPT_TLS1_2, OPT_TLS1_1, OPT_TLS1, OPT_DTLS, OPT_DTLS1,
+#ifndef OPENSSL_NO_TLCP
+    OPT_TLCP, OPT_ENC_CERT, OPT_ENC_KEY, OPT_SIGN_CERT, OPT_SIGN_KEY,
+    OPT_ENABLE_TLCP, OPT_ENC_CERTFORM, OPT_SIGN_CERTFORM,
+    OPT_ENC_KEYFORM, OPT_SIGN_KEYFORM,
+#endif    
     OPT_DTLS1_2, OPT_SCTP, OPT_TIMEOUT, OPT_MTU, OPT_LISTEN, OPT_STATELESS,
     OPT_ID_PREFIX, OPT_SERVERNAME, OPT_SERVERNAME_FATAL,
     OPT_CERT2, OPT_KEY2, OPT_NEXTPROTONEG, OPT_ALPN, OPT_SENDFILE,
@@ -783,6 +788,22 @@ const OPTIONS s_server_options[] = {
     {"pass", OPT_PASS, 's', "Private key and cert file pass phrase source"},
     {"dcert", OPT_DCERT, '<',
      "Second server certificate file to use (usually for DSA)"},
+#ifndef OPENSSL_NO_TLCP
+    {"enc_cert", OPT_ENC_CERT, '<',
+     "TLCP encryption certificate file to use, PEM format assumed"},
+    {"sign_cert", OPT_SIGN_CERT, '<',
+     "TLCP signing certificate file to use, PEM format assumed"},
+    {"enc_key", OPT_ENC_KEY, 's', "TLCP encryption private key file to use"},
+    {"sign_key", OPT_SIGN_KEY, 's', "TLCP signing private key file to use"},
+    {"enc_certform", OPT_ENC_CERTFORM, 'F',
+     "Enc Certificate format (PEM or DER) PEM default"},
+    {"sign_certform", OPT_SIGN_CERTFORM, 'F',
+     "Sign Certificate format (PEM or DER) PEM default"},
+    {"enc_keyform", OPT_ENC_KEYFORM, 'f',
+     "Enc Key format (PEM, DER or ENGINE) PEM default"},
+    {"sign_keyform", OPT_SIGN_KEYFORM, 'f',
+     "Sign Key format (PEM, DER or ENGINE) PEM default"},
+#endif
     {"dcertform", OPT_DCERTFORM, 'F',
      "Second server certificate file format (PEM/DER/P12); has no effect"},
     {"dcert_chain", OPT_DCERT_CHAIN, '<',
@@ -932,6 +953,10 @@ const OPTIONS s_server_options[] = {
 #ifndef OPENSSL_NO_TLS1_3
     {"tls1_3", OPT_TLS1_3, '-', "just talk TLSv1.3"},
 #endif
+#ifndef OPENSSL_NO_TLCP
+    {"tlcp", OPT_TLCP, '-', "Just talk TLCP"},
+    {"enable_tlcp", OPT_ENABLE_TLCP, '-', "enable tlcp"},
+#endif
 #ifndef OPENSSL_NO_DTLS
     {"dtls", OPT_DTLS, '-', "Use any DTLS version"},
     {"listen", OPT_LISTEN, '-',
@@ -970,9 +995,15 @@ const OPTIONS s_server_options[] = {
     {NULL}
 };
 
-#define IS_PROT_FLAG(o) \
+#ifndef OPENSSL_NO_TLCP
+# define IS_PROT_FLAG(o) \
+ (o == OPT_SSL3 || o == OPT_TLS1 || o == OPT_TLS1_1 || o == OPT_TLS1_2 \
+  || o == OPT_TLS1_3 || o == OPT_DTLS || o == OPT_DTLS1 || o == OPT_DTLS1_2 || o == OPT_TLCP)
+#else
+# define IS_PROT_FLAG(o) \
  (o == OPT_SSL3 || o == OPT_TLS1 || o == OPT_TLS1_1 || o == OPT_TLS1_2 \
   || o == OPT_TLS1_3 || o == OPT_DTLS || o == OPT_DTLS1 || o == OPT_DTLS1_2)
+#endif
 
 int s_server_main(int argc, char *argv[])
 {
@@ -1039,6 +1070,19 @@ int s_server_main(int argc, char *argv[])
     const char *s_cert_file = TEST_CERT, *s_key_file = NULL, *s_chain_file = NULL;
     const char *s_cert_file2 = TEST_CERT2, *s_key_file2 = NULL;
     char *s_dcert_file = NULL, *s_dkey_file = NULL, *s_dchain_file = NULL;
+#ifndef OPENSSL_NO_TLCP
+    char *s_enc_cert_file = NULL, *s_enc_key_file = NULL;
+    char *s_sign_cert_file = NULL, *s_sign_key_file = NULL;
+    EVP_PKEY *s_enc_key = NULL;
+    EVP_PKEY *s_sign_key = NULL;
+    X509 *s_enc_cert = NULL;
+    X509 *s_sign_cert = NULL;
+    int s_enc_cert_format = FORMAT_PEM;
+    int s_sign_cert_format = FORMAT_PEM;
+    int s_enc_key_format = FORMAT_PEM;
+    int s_sign_key_format = FORMAT_PEM;
+    int enable_tlcp = 0;
+#endif
 #ifndef OPENSSL_NO_OCSP
     int s_tlsextstatus = 0;
 #endif
@@ -1234,6 +1278,36 @@ int s_server_main(int argc, char *argv[])
         case OPT_DCERT:
             s_dcert_file = opt_arg();
             break;
+#ifndef OPENSSL_NO_TLCP
+        case OPT_ENC_CERT:
+            s_enc_cert_file = opt_arg();
+            break;
+        case OPT_ENC_KEY:
+            s_enc_key_file = opt_arg();
+            break;
+        case OPT_SIGN_CERT:
+            s_sign_cert_file = opt_arg();
+            break;
+        case OPT_SIGN_KEY:
+            s_sign_key_file = opt_arg();
+            break;
+        case OPT_ENC_CERTFORM:
+            if (!opt_format(opt_arg(), OPT_FMT_PEMDER, &s_enc_cert_format))
+                goto opthelp;
+            break;
+        case OPT_SIGN_CERTFORM:
+            if (!opt_format(opt_arg(), OPT_FMT_PEMDER, &s_sign_cert_format))
+                goto opthelp;
+            break;
+        case OPT_ENC_KEYFORM:
+            if (!opt_format(opt_arg(), OPT_FMT_ANY, &s_enc_key_format))
+                goto opthelp;
+            break;
+        case OPT_SIGN_KEYFORM:
+            if (!opt_format(opt_arg(), OPT_FMT_ANY, &s_sign_key_format))
+                goto opthelp;
+            break;
+#endif
         case OPT_DKEYFORM:
             if (!opt_format(opt_arg(), OPT_FMT_ANY, &s_dkey_format))
                 goto opthelp;
@@ -1517,6 +1591,14 @@ int s_server_main(int argc, char *argv[])
             socket_type = SOCK_DGRAM;
 #endif
             break;
+#ifndef OPENSSL_NO_TLCP
+        case OPT_TLCP:
+            meth = TLCP_server_method();
+            break;
+        case OPT_ENABLE_TLCP:
+            enable_tlcp = 1;
+            break;
+#endif
         case OPT_SCTP:
 #ifndef OPENSSL_NO_SCTP
             protocol = IPPROTO_SCTP;
@@ -1723,6 +1805,49 @@ int s_server_main(int argc, char *argv[])
         goto end;
 
     if (nocert == 0) {
+#ifndef OPENSSL_NO_TLCP
+        /* XXX: don't support cert-key bundle at current stage */
+        if (s_enc_key_file) {
+            s_enc_key = load_key(s_enc_key_file, s_enc_key_format, 0, pass, engine,
+                                 "TLCP server encryption certificate private key file");
+            if (s_enc_key == NULL) {
+                ERR_print_errors(bio_err);
+                goto end;
+            }
+        }
+
+        if (s_enc_cert_file) {
+            s_enc_cert = load_cert(s_enc_cert_file, s_enc_cert_format,
+                                   "TLCP server encryption certificate file");
+            if (s_enc_cert == NULL) {
+                ERR_print_errors(bio_err);
+                goto end;
+            }
+        }
+
+        if (s_sign_key_file) {
+            s_sign_key = load_key(s_sign_key_file, s_sign_key_format, 0, pass, engine,
+                                  "TLCP server signing certificate private key file");
+            if (s_sign_key == NULL) {
+                ERR_print_errors(bio_err);
+                goto end;
+            }
+        }
+
+        if (s_sign_cert_file) {
+            s_sign_cert = load_cert(s_sign_cert_file, s_sign_cert_format,
+                                    "TLCP server signing certificate file");
+            if (s_sign_cert == NULL) {
+                ERR_print_errors(bio_err);
+                goto end;
+            }
+        }
+
+        if (s_sign_cert_file != NULL && !strcmp(s_cert_file, TEST_CERT)) {
+            /* Don't try to load the default cert if TLCP certs are load */
+            goto skip;
+        }
+#endif
         s_key = load_key(s_key_file, s_key_format, 0, pass, engine,
                          "server certificate private key");
         if (s_key == NULL)
@@ -1733,6 +1858,9 @@ int s_server_main(int argc, char *argv[])
 
         if (s_cert == NULL)
             goto end;
+#ifndef OPENSSL_NO_TLCP
+skip:
+#endif
         if (s_chain_file != NULL) {
             if (!load_certs(s_chain_file, 0, &s_chain, NULL,
                             "server certificate chain"))
@@ -1837,6 +1965,11 @@ int s_server_main(int argc, char *argv[])
         ERR_print_errors(bio_err);
         goto end;
     }
+
+#ifndef OPENSSL_NO_TLCP
+    if (enable_tlcp)
+        SSL_CTX_enable_tlcp(ctx);
+#endif
 
     SSL_CTX_clear_mode(ctx, SSL_MODE_AUTO_RETRY);
 
@@ -2088,6 +2221,14 @@ int s_server_main(int argc, char *argv[])
     if (!set_cert_key_stuff(ctx, s_cert, s_key, s_chain, build_chain))
         goto end;
 
+#ifndef OPENSSL_NO_TLCP
+    if (!set_sign_cert_key_stuff(ctx, s_sign_cert, s_sign_key, NULL, 0))
+        goto end;
+
+    if (!set_enc_cert_key_stuff(ctx, s_enc_cert, s_enc_key, s_chain, build_chain))
+        goto end;
+#endif
+
     if (s_serverinfo_file != NULL
         && !SSL_CTX_use_serverinfo_file(ctx, s_serverinfo_file)) {
         ERR_print_errors(bio_err);
@@ -2239,6 +2380,12 @@ int s_server_main(int argc, char *argv[])
     X509_free(s_dcert);
     EVP_PKEY_free(s_key);
     EVP_PKEY_free(s_dkey);
+#ifndef OPENSSL_NO_TLCP
+    X509_free(s_sign_cert);
+    X509_free(s_enc_cert);
+    EVP_PKEY_free(s_enc_key);
+    EVP_PKEY_free(s_sign_key);
+#endif
     sk_X509_pop_free(s_chain, X509_free);
     sk_X509_pop_free(s_dchain, X509_free);
     OPENSSL_free(pass);

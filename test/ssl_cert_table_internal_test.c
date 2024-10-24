@@ -54,7 +54,15 @@ static int test_ssl_cert_table(void)
            && test_cert_table(NID_id_GostR3410_2012_512, SSL_aGOST12,
                               SSL_PKEY_GOST12_512)
            && test_cert_table(EVP_PKEY_ED25519, SSL_aECDSA, SSL_PKEY_ED25519)
-           && test_cert_table(EVP_PKEY_ED448, SSL_aECDSA, SSL_PKEY_ED448);
+           && test_cert_table(EVP_PKEY_ED448, SSL_aECDSA, SSL_PKEY_ED448)
+           && test_cert_table(EVP_PKEY_SM2, SSL_aSM2, SSL_PKEY_SM2)
+#ifndef OPENSSL_NO_TLCP
+           && test_cert_table(EVP_PKEY_SM2, SSL_aSM2, SSL_PKEY_SM2_SIGN)
+           && test_cert_table(EVP_PKEY_SM2, SSL_aSM2, SSL_PKEY_SM2_ENC)
+           && test_cert_table(EVP_PKEY_RSA, SSL_aRSA, SSL_PKEY_RSA_SIGN)
+           && test_cert_table(EVP_PKEY_RSA, SSL_aRSA, SSL_PKEY_RSA_ENC)
+#endif
+           ;
 }
 
 int setup_tests(void)
